@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<Module>
+  <ModulePrefs title="Arduino Example">
+    <Require feature="rpc"/>
+    <Require feature="views"/>
+  </ModulePrefs>
+  <Content type="html">
+  <!-- TODO: add in your server address & port for the iframe -->
+    <![CDATA[
+    	<script src="//talkgadget.google.com/hangouts/_/api/hangout.js?v=1.1"></script>
+    	<iframe src="http://server:httpport/index.html" width="300" height="100%" scrolling=no frameborder=0></iframe>
+    ]]>
+  </Content>
+</Module>

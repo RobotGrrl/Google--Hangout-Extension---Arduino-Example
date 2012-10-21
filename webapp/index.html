@@ -1,0 +1,191 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Google+ Hangout Extension Arduino Example</title>
+        
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.6.1/jquery.min.js"></script>
+    <!--<script src="public/jquery.min.js"></script>-->
+    
+    
+  </head>
+  <body>
+    
+    <script>
+    
+        /*
+        Google+ Hangout Extension / Interactive Web App Demo
+        ---
+        This is the client-side javascript. It changes the
+        colours and lets the websocket know when a button
+        was pressed.
+        
+        This is based off of node-session by John Schimmel
+        https://github.com/johnschimmel/node-session
+        */
+    
+      var HTTP_PORT = port; // TODO: add your http port here
+    
+      function message(obj){
+
+      	if( obj.message && window.console && console.log ) console.log(obj.message[0], obj.message[1]);
+        
+        // this is when you are pressing the button (orange)
+        if (obj.message[0] == "you") {
+        
+            if(obj.message[1] == "1") {
+                jQuery('#turnon').css('background-color','#FF6900'); // orange
+                jQuery('#turnoff').css('background-color','#005790'); // original
+            } else if(obj.message[1] == "0") {
+                jQuery('#turnoff').css('background-color','#FF6900'); // orange
+                jQuery('#turnon').css('background-color','#005790'); // original
+            }
+            
+        // this is when someone else on the websockets is pressing the button (green)
+        } else if (obj.message[0] != "arduino" && obj.message[0] != "you") {
+            
+            if(obj.message[1] == "1") {
+                jQuery('#turnon').css('background-color','#38FF00'); // green
+                jQuery('#turnoff').css('background-color','#005790'); // original
+            } else if(obj.message[1] == "0") {
+                jQuery('#turnoff').css('background-color','#38FF00'); // green
+                jQuery('#turnon').css('background-color','#005790'); // original
+            }
+            
+        }
+        
+      }
+      
+      // send out turn on to the socket
+      function turnOnLED(fnum) {
+          socket.send(fnum);
+          message({ message: ['you', fnum] });
+      }
+      
+      // send out turn off to the socket
+      function turnOffLED(fnum) {
+          socket.send(fnum);
+          message({ message: ['you', fnum] });
+      }
+      
+      // 'fnum' is good to have when it is multiple buttons
+      function touchHandler(fnum, e) {
+          if(fnum == 0) {
+            turnOffLED(0);
+          } else {
+            turnOnLED(1);
+          }
+      }
+      
+      
+      // -- SOCKET -- //
+      
+      var socket = new io.connect(null, { port: HTTP_PORT, rememberTransport: false});
+      //var socket = io.connect('http://localhost/');
+      socket.on('message', function(obj){
+      	
+      	message(obj);
+
+      });
+      
+      socket.on('alert-join', function (data) {
+		$('#clientcount').text("Users looking at this page: " + data);
+        });
+    
+      // various alerts  
+      socket.on('connect', function(){ message({ message: ['System', 'Connected']})});
+      socket.on('disconnect', function(){ message({ message: ['System', 'Disconnected']})});
+      socket.on('reconnect', function(){ message({ message: ['System', 'Reconnected to server']})});
+      socket.on('reconnecting', function( nextRetry ){ message({ message: ['System', 'Attempting to re-connect to the server, next attempt in ' + nextRetry + 'ms']})});
+      socket.on('reconnect_failed', function(){ message({ message: ['System', 'Reconnected to server FAILED.']})});
+      
+      jQuery('document').ready(function(){
+      
+          jQuery('#turnon').mousedown(function() {
+              turnOnLED(1);
+          });
+                    
+          jQuery('#turnoff').mousedown(function() {
+              turnOffLED(0);
+          });
+                    
+        //add in iphone mobile safari touch events
+        document.getElementById("turnon").addEventListener("touchstart", touchHandler, 1, false);
+        document.getElementById("turnon").addEventListener("touchmove", touchHandler, 1, false);
+
+        document.getElementById("turnoff").addEventListener("touchstart", touchHandler, 0, false);
+        document.getElementById("turnoff").addEventListener("touchmove", touchHandler, 0, false);
+        
+      })
+    </script>
+    
+    <div class="wrapper">
+    
+    <center>
+    
+    <div class="led" id="turnon">
+    <p>on</p>
+    </div>
+    
+    <div class="led" id="turnoff">
+    <p>off</p>
+    </div>
+    
+    <div class="info" id="clientcount">
+    Users looking at this page: 0
+    </div>
+    
+    </center>
+    
+    </div>
+    
+    <style>
+        body { 
+            margin:0px;
+            padding:0px;
+            font-family:'Helvetica';
+            font-size:30px;
+            width:300px;
+	        height:100%;
+        }
+        .wrapper {
+	        width:300px;
+	        height:100%;
+	        background-color: #BBC0D1;
+	    }
+        .led {
+	        border:2px solid black;
+            padding:10px;
+            text-align:center;
+            margin:0px;
+            margin-top:15px;
+            margin-bottom:15px;
+            color: #111;
+            width:240px;
+            height:30px;
+            cursor: pointer;
+        }
+        #turnon {
+	        background-color: #005790;
+        }
+        #turnoff {
+	        background-color: #005790;
+        }
+        .led p {
+            margin:0px;
+	        padding-top:0px;
+        }
+        .info {
+        	padding-top: 10px;
+        	font-size: 0.4em;
+        }
+        ::selection {
+	        background: #FF0119;
+	    }
+        ::-moz-selection {
+	        background: #FF0119; 
+        }
+    </style>
+    
+  </body>
+</html>
